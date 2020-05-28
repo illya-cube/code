@@ -14,18 +14,18 @@ public class Movement : MonoBehaviour
     public float speed = 6.0f;
     public static float jumpSpeed;
     public float gravity;
-    
+    public bool inAir = false;
     public PlayerFollow cameraControl;
     private Vector3 moveDirection = Vector3.zero;
     private Vector3 verticalResult = Vector3.zero;
     private Vector3 horizontalResult = Vector3.zero;
-    private Vector3 jumpVector = Vector3.up;
+    private Vector3 jumpVector = Vector3.zero;
     private float horizontalInput;
     private float verticalInput;
     public int jumpCount;
     public static int flyStamina;
     public static int charJumpMod;
-    public static float fallMultiplier = 2f;
+    public static float fallMultiplier = 50f;
     private float velocity;
     private float debugTime;
 
@@ -45,10 +45,17 @@ public class Movement : MonoBehaviour
         //moveDirection.y -= (gravity * Time.deltaTime * Time.deltaTime);
         Jump();
         CalcMove();
-        
+
         Debug.DrawRay(gameObject.transform.position, jumpVector, Color.red);
         Debug.DrawRay(gameObject.transform.position, moveDirection, Color.magenta);
-
+        if(characterController.isGrounded == false)
+        {
+            inAir = true;
+        }
+        else
+        {
+            inAir = false;
+        }
     }
 
     void AirControl() //this function should adjust player speed depending on if they're in the air or not
@@ -67,56 +74,65 @@ public class Movement : MonoBehaviour
     }
     void Jump() //this 
     {
-        if (Input.GetButtonDown("Jump"))
+        if (Input.GetButtonDown("Jump") && jumpCount > 0)
         {
-            moveDirection.y = jumpSpeed * 5;
+            jumpVector.y += jumpSpeed * 2;
+            //moveDirection.y += jumpSpeed * 5;
             //characterController.Move(jumpVector * jumpSpeed);
+            Debug.Log("i've jumped!");
+            jumpCount--;
+        }
+        else 
+        {
+            jumpVector.y = 0;
         }
     }
     void FallControl() //while velocity is below 0, increase gravity by fall multiplier over time
     {
-        if(characterController.isGrounded == false)
+        if(inAir == true)
         {
-            moveDirection.y -= gravity * (fallMultiplier - 1) * Time.deltaTime; 
+            //moveDirection.y -= gravity * (fallMultiplier - 1) * Time.deltaTime;
+            moveDirection.y -= gravity * Time.deltaTime * 10f;
+            Debug.Log("gravity is on!");
 
-            if (velocity < -.1 )
+            if (velocity < -.2 && inAir == true)//this line increases gravity by fall mult over time while the player is falling, capping off at 100
             {
-                gravity += fallMultiplier * Time.deltaTime; //this line increases gravity by fall mult over time while the player is falling, capping off at 100
-                    if (gravity >= 100)
+                gravity += fallMultiplier * Time.deltaTime; 
+                    if (gravity >= 500)
                     {
-                        gravity = 100;
+                        gravity = 500;
                     }
             } 
-                    else 
-                    {
-                        gravity = 1; //this line resets gravity back to its default when it touches the ground
-                    }
-
-            if (Input.GetButton("Crouch"))
+            if (Input.GetButton("Crouch")) //this should double gravity while the crouch button is pressed, allowing faster falling if desired
             {
-                gravity += fallMultiplier * 2 * Time.deltaTime; //this should double gravity while the crouch button is pressed, allowing faster falling if desired
+                gravity += fallMultiplier * 2 * Time.deltaTime;
                 return;
             }
     
         }
+        else
+        {
+            gravity = 150; //this line resets gravity back to its default when it touches the ground
+
+        }
     }
     void CalcMove()
     {
-        velocity = characterController.velocity.y;
+        velocity = Mathf.Round(characterController.velocity.y);
         horizontalInput = Input.GetAxis("Horizontal"); //take the input of the player, either -1 or 1, and put that into the camera
         verticalInput = Input.GetAxis("Vertical");
 
         verticalResult = cameraControl.camForward * verticalInput; //we take cam control, which is shooting a vector forward, multiply it by input to get true camera forward
         horizontalResult = cameraControl.camRight * horizontalInput; //same as above, but with the right vector, and horizontal input
         /*
-         * i was going to write someting here but forgot
+         * could have used some lerp or something, but i'm struggling to learn how they actually work, and what i've done seems to work just fine..? maybe..?
         */
-        moveDirection = verticalResult + horizontalResult;
+        moveDirection = verticalResult + horizontalResult + jumpVector;
 
         // Apply gravity. Gravity is multiplied by deltaTime twice (once here, and once below
         // when the moveDirection is multiplied by deltaTime). This is because gravity should be applied
         // as an acceleration (ms^-2)
-        moveDirection.y -= gravity * Time.deltaTime * 2f;
+        moveDirection.y -= gravity * Time.deltaTime * 2;
     }
     void FixedUpdate() //
     {
