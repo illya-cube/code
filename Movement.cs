@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 // This script moves the character controller forward
@@ -28,6 +28,7 @@ public class Movement : MonoBehaviour
     public static float fallMultiplier = 50f;
     private float velocity;
     private float debugTime;
+    public bool isJump;
 
     void Start()
     {
@@ -72,19 +73,22 @@ public class Movement : MonoBehaviour
             speed = 3.0f;
         }
     }
-    void Jump() //this 
+    void Jump() //this functions adjusts the jump vector, which gets added to the other movement vectors later on
+        //this jump vector is affected by each character's respective jump speed modifier, and is multiplied to get better results with easier to keep track of numbers
     {
         if (Input.GetButtonDown("Jump") && jumpCount > 0)
         {
-            jumpVector.y += jumpSpeed * 2;
+            jumpVector.y += jumpSpeed * 3;
             //moveDirection.y += jumpSpeed * 5;
             //characterController.Move(jumpVector * jumpSpeed);
-            Debug.Log("i've jumped!");
+            //Debug.Log("i've jumped!");
             jumpCount--;
+            isJump = true;
         }
         else 
         {
             jumpVector.y = 0;
+            isJump = false;
         }
     }
     void FallControl() //while velocity is below 0, increase gravity by fall multiplier over time
@@ -93,7 +97,7 @@ public class Movement : MonoBehaviour
         {
             //moveDirection.y -= gravity * (fallMultiplier - 1) * Time.deltaTime;
             moveDirection.y -= gravity * Time.deltaTime * 10f;
-            Debug.Log("gravity is on!");
+            //Debug.Log("gravity is on!");
 
             if (velocity < -.2 && inAir == true)//this line increases gravity by fall mult over time while the player is falling, capping off at 100
             {
