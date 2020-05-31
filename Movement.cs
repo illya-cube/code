@@ -15,23 +15,28 @@ public class Movement : MonoBehaviour
     public static float jumpSpeed;
     public float gravity;
     public bool inAir = false;
+    public float airTime;
     public PlayerFollow cameraControl;
     private Vector3 moveDirection = Vector3.zero;
     private Vector3 verticalResult = Vector3.zero;
     private Vector3 horizontalResult = Vector3.zero;
     private Vector3 jumpVector = Vector3.zero;
+    private Vector3 detectGround = Vector3.zero;
     private float horizontalInput;
     private float verticalInput;
     public int jumpCount;
     public static int flyStamina;
-    public static int charJumpMod;
+    public static int charJumps;
+    public static int charJumpHeight;
     public static float fallMultiplier = 50f;
     private float velocity;
     private float debugValue;
     public bool isJump;
+    public GameObject floorRayObj;
 
     void Start()
     {
+        airTime = 0;
         characterController = GetComponent<CharacterController>();
         jumpCount = 0;
         jumpSpeed = 50;
@@ -42,24 +47,84 @@ public class Movement : MonoBehaviour
     {
         characterController.Move(moveDirection * Time.deltaTime); //
         AirControl();
-        
+        //Debug.Log(LayerMask.GetMask("Lava"));
         //moveDirection.y -= (gravity * Time.deltaTime * Time.deltaTime);
         Jump();
         CalcMove();
 
         Debug.DrawRay(gameObject.transform.position, jumpVector, Color.red);
         Debug.DrawRay(gameObject.transform.position, moveDirection, Color.magenta);
+        detectGroundFunc();
+        
+        FallControl();
+    }
 
-        if ((characterController.collisionFlags & CollisionFlags.Below) != 0)
+    void AirControl() //this function should adjust player speed depending on if they're in the air or not
+    {
+        if (inAir == false)
         {
-            print("Touching ground!");
+            
+            jumpCount = charJumps;
+            speed = 6.0f;
+        }
+        if (inAir == true)
+        {
+            //Debug.Log("I'm in the air!");
+            speed = 3.0f;
+        }
+    }
+    void detectGroundFunc()//this is supposed to detect whether the player is on the ground, and set the bool inAir to true, to adjust calculations of air flying/double jumps, etc
+    {
+        RaycastHit hit;
+        // Does the ray intersect any objects excluding the player layer
+        if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.down), out hit, .5f, LayerMask.GetMask("Floor")))
+        {
+            Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.down) * hit.distance, Color.yellow);
+            //Debug.Log("I'm touching Floor");
+            inAir = false;
+        }
+        else if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.down), out hit, .5f, LayerMask.GetMask("Slime")))
+        {
+            Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.down) * hit.distance, Color.yellow);
+            //Debug.Log("I'm touching Slime!");
+            inAir = false;
+        }
+        else if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.down), out hit, .5f, LayerMask.GetMask("Lava")))
+        {
+            Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.down) * hit.distance, Color.yellow);
+            //Debug.Log("AHH I'M ON FIRE!!!");
+            inAir = false;
+        }
+        else if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.down), out hit, .5f, LayerMask.GetMask("Liquid")))
+        {
+            Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.down) * hit.distance, Color.yellow);
+            //Debug.Log("I'm touching Liquid!!");
             inAir = false;
         }
         else
         {
+            Debug.Log("I'M FALLING!");
             inAir = true;
         }
-        /*if (characterController.isGrounded == false)
+
+
+        /*if ((characterController.collisionFlags & CollisionFlags.Below) == 0)  <== this don't work because we have gravity coded to being in air
+         * 
+        {
+            airTime++;
+            if (airTime >= 100)
+            {
+                inAir = true;
+            }
+        }
+        else
+        {
+            print("Touching ground!");
+            inAir = false;
+            airTime = 0;
+        }
+        
+        if (characterController.isGrounded == false)
         {
             inAir = true;
         }
@@ -68,35 +133,20 @@ public class Movement : MonoBehaviour
             inAir = false;
         }
         */
-        FallControl();
-    }
-
-    void AirControl() //this function should adjust player speed depending on if they're in the air or not
-    {
-        if (characterController.isGrounded)
-        {
-            
-            jumpCount = 1 + charJumpMod;
-            speed = 6.0f;
-        }
-        if (characterController.isGrounded == false)
-        {
-            //Debug.Log("I'm in the air!");
-            speed = 3.0f;
-        }
     }
     void Jump() //this functions adjusts the jump vector, which gets added to the other movement vectors later on
         //this jump vector is affected by each character's respective jump speed modifier, and is multiplied to get better results with easier to keep track of numbers
     {
         if (Input.GetButtonDown("Jump") && jumpCount > 0)
         {
-            while(jumpVector.y <= 10)
+            debugValue = jumpVector.y;
+            while(jumpVector.y <= charJumpHeight)
             {
                 jumpVector.y += jumpSpeed * Time.deltaTime;
             }
             //moveDirection.y += jumpSpeed * 5;
             //characterController.Move(jumpVector * jumpSpeed);
-            //Debug.Log("i've jumped!");
+            Debug.Log("i've jumped!");
             jumpCount--;
             isJump = true;
         }
@@ -114,7 +164,7 @@ public class Movement : MonoBehaviour
             moveDirection.y -= gravity * Time.deltaTime * 10f;
             Debug.Log("gravity is on!");
 
-            if (velocity < -.2 && inAir == true)//this line increases gravity by fall mult over time while the player is falling, capping off at 100
+            if (velocity < -.2 && inAir == true && jumpCount == 0)//this line increases gravity by fall mult over time while the player is falling, capping off at 100
             {
                 gravity += fallMultiplier * Time.deltaTime; 
                     if (gravity >= 500)
