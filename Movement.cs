@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 
 // This script moves the character controller forward
@@ -27,7 +27,7 @@ public class Movement : MonoBehaviour
     public static int charJumpMod;
     public static float fallMultiplier = 50f;
     private float velocity;
-    private float debugTime;
+    private float debugValue;
     public bool isJump;
 
     void Start()
@@ -40,16 +40,26 @@ public class Movement : MonoBehaviour
     
     void Update()
     {
-        characterController.Move(moveDirection * Time.deltaTime * speed);
+        characterController.Move(moveDirection * Time.deltaTime); //
         AirControl();
-        FallControl();
+        
         //moveDirection.y -= (gravity * Time.deltaTime * Time.deltaTime);
         Jump();
         CalcMove();
 
         Debug.DrawRay(gameObject.transform.position, jumpVector, Color.red);
         Debug.DrawRay(gameObject.transform.position, moveDirection, Color.magenta);
-        if(characterController.isGrounded == false)
+
+        if ((characterController.collisionFlags & CollisionFlags.Below) != 0)
+        {
+            print("Touching ground!");
+            inAir = false;
+        }
+        else
+        {
+            inAir = true;
+        }
+        /*if (characterController.isGrounded == false)
         {
             inAir = true;
         }
@@ -57,6 +67,8 @@ public class Movement : MonoBehaviour
         {
             inAir = false;
         }
+        */
+        FallControl();
     }
 
     void AirControl() //this function should adjust player speed depending on if they're in the air or not
@@ -78,7 +90,10 @@ public class Movement : MonoBehaviour
     {
         if (Input.GetButtonDown("Jump") && jumpCount > 0)
         {
-            jumpVector.y += jumpSpeed * 3;
+            while(jumpVector.y <= 10)
+            {
+                jumpVector.y += jumpSpeed * Time.deltaTime;
+            }
             //moveDirection.y += jumpSpeed * 5;
             //characterController.Move(jumpVector * jumpSpeed);
             //Debug.Log("i've jumped!");
@@ -97,7 +112,7 @@ public class Movement : MonoBehaviour
         {
             //moveDirection.y -= gravity * (fallMultiplier - 1) * Time.deltaTime;
             moveDirection.y -= gravity * Time.deltaTime * 10f;
-            //Debug.Log("gravity is on!");
+            Debug.Log("gravity is on!");
 
             if (velocity < -.2 && inAir == true)//this line increases gravity by fall mult over time while the player is falling, capping off at 100
             {
@@ -131,12 +146,12 @@ public class Movement : MonoBehaviour
         /*
          * could have used some lerp or something, but i'm struggling to learn how they actually work, and what i've done seems to work just fine..? maybe..?
         */
-        moveDirection = verticalResult + horizontalResult + jumpVector;
+        moveDirection = ((verticalResult + horizontalResult) * speed) + jumpVector;
 
         // Apply gravity. Gravity is multiplied by deltaTime twice (once here, and once below
         // when the moveDirection is multiplied by deltaTime). This is because gravity should be applied
         // as an acceleration (ms^-2)
-        moveDirection.y -= gravity * Time.deltaTime * 2;
+        
     }
     void FixedUpdate() //
     {
