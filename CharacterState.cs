@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 public class CharacterState : MonoBehaviour
 {
+    public GameObject Player;
     public Movement Movement;
     public GameObject characterImage;
     public GameObject characterText;
@@ -13,10 +14,18 @@ public class CharacterState : MonoBehaviour
     public Animator iconAnimator;
     public Animator characterAnimator;
     public int characterSelect;
+    public illyaGlide illyaGlide;
+    public float characterGravity;
+    public float speedMod;
+    public float regenMod;
     // Start is called before the first frame update
     void Start()
     {
         CheckCharacter();
+        Movement = Player.GetComponent<Movement>();
+        characterAnimator = Player.GetComponent<Animator>();
+        illyaGlide = Player.GetComponent<illyaGlide>();
+        
     }
     void SwapCharacter()
     {
@@ -46,57 +55,67 @@ public class CharacterState : MonoBehaviour
     void Update()
     {
         SwapCharacter();
-        debugJump.text = "Jump Speed = " + Movement.jumpSpeed;
+        debugJump.text = "Debug Number = " + Movement.debugValue;
     }
     void SwapIllya()
     {
         iconAnimator.SetInteger("Character", 0);
         characterAnimator.SetInteger("Character", 0);
-        //Debug.Log("i'm Illya Now!");
-        characterSelect = 0;
-        Movement.charJumpMod = 0;
+        speedMod = 1;
+        Movement.charJumps = 1;
         Movement.flyStamina = 200;
-        Movement.jumpSpeed = 40;
-        Movement.fallMultiplier = 20;
+        Movement.jumpSpeed = 30;
+        Movement.fallMultiplier = 40;
+        Movement.charJumpHeight = 400;
+        characterGravity = 100;
+        illyaGlide.SetGrav();
+        characterSelect = 0;
+        regenMod = 40;
         return;
     }
     void SwapArc()
     {
         iconAnimator.SetInteger("Character", 1);
         characterAnimator.SetInteger("Character", 1);
-       //Debug.Log("i'm Arc now!");
-        characterSelect = 1;
-        Movement.charJumpMod = 2;
+        speedMod = 2;
+        Movement.charJumps = 2;
         Movement.flyStamina = 0;
         Movement.jumpSpeed = 80;
         Movement.fallMultiplier = 60;
+        Movement.charJumpHeight = 1200;
+        characterGravity = 120;
+        characterSelect = 1;
         return;
     }
     void SwapRacheal()
     {
         iconAnimator.SetInteger("Character", 2);
         characterAnimator.SetInteger("Character", 2);
-        //Debug.Log("i'm Racheal now!");
-        characterSelect = 2;
-        Movement.charJumpMod = 0;
+        speedMod = 2;
+        Movement.charJumps = 1;
         Movement.flyStamina = 0;
         Movement.jumpSpeed = 40;
         Movement.fallMultiplier = 70;
+        Movement.charJumpHeight = 1000;
+        characterGravity = 130;
+        characterSelect = 2;
         return;
     }
     void SwapLilith()
     {
         iconAnimator.SetInteger("Character", 3);
         characterAnimator.SetInteger("Character", 3);
-        //Debug.Log("i'm Lilith now!");
-        characterSelect = 3;
-        Movement.charJumpMod = 1;
+        speedMod = 1;
+        Movement.charJumps = 1;
         Movement.flyStamina = 0;
         Movement.jumpSpeed = 200;
         Movement.fallMultiplier = 100;
+        Movement.charJumpHeight = 1600;
+        characterGravity = 150;
+        characterSelect = 3;
         return;
     }
-    void CheckCharacter()
+    public void CheckCharacter()
     {
         if(characterSelect == 0)
         {
