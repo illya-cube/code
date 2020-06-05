@@ -14,12 +14,12 @@ public class TargetList
 		sphereRadius = checkRadius;
 	}
 
-	public void update()
+	public void Update()
 	{
-		updateEnemyList(thisTransform, sphereRadius);
+		UpdateEnemyList(thisTransform, sphereRadius);
 	}
 
-	public void updateEnemyList(Vector3 center, float radius)
+	public void UpdateEnemyList(Vector3 center, float radius)
 	{
 		enemyList = Physics.OverlapSphere(center, radius, LayerMask.GetMask("Enemy"));
 		enemyListLength = enemyList.Length;
@@ -43,7 +43,7 @@ public class TargetList
 		return enemyList;
 	}
 
-	public void setPosition(Vector3 position)
+	public void SetPosition(Vector3 position)
 	{
 		thisTransform = position;
 	}

@@ -75,8 +75,8 @@ public class PlayerFollow : MonoBehaviour
         Debug.DrawRay(gameObject.transform.position, playerVector - gameObject.transform.position, Color.green);
         Debug.DrawRay(transform.position, camRight, Color.red);
         Debug.DrawRay(transform.position, camForward, Color.blue);
-		targetList.setPosition(gameObject.transform.position);
-		targetList.update();
+		targetList.SetPosition(gameObject.transform.position);
+		targetList.Update();
         targetList.SortEnemy(playerPosition);
 
         enemyList = targetList.GetEnemyList();

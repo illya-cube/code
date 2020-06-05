@@ -83,7 +83,7 @@ public class Movement : MonoBehaviour
         else 
         { 
             FallControl();
-            Debug.Log("i'm falling");
+            //Debug.Log("i'm falling");
             jumpVector.y = 0;
         }
     }
