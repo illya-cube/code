@@ -1,13 +1,13 @@
-﻿using System.Collections;
+﻿/*using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TargetList
+public class TargetListBackup
 {
 	private Vector3 thisTransform;
 	private float sphereRadius;
 	private Collider[] enemyList;
-	public int enemyListLength;
+
 	public TargetList(Vector3 position, float checkRadius)
 	{
 		thisTransform = position;
@@ -22,22 +22,14 @@ public class TargetList
 	public void updateEnemyList(Vector3 center, float radius)
 	{
 		enemyList = Physics.OverlapSphere(center, radius, LayerMask.GetMask("Enemy"));
-		enemyListLength = enemyList.Length;
-	}
-	public void SortEnemy(Vector3 playerPosition)
-	{
-		if (enemyList.Length > 1)
+		int i = 0;
+		while (i < enemyList.Length)
 		{
-			float arrayCompare0 = (enemyList[0].gameObject.transform.position - playerPosition).magnitude;
-			float arrayCompare1 = (enemyList[1].gameObject.transform.position - playerPosition).magnitude;
-			if (arrayCompare0 > arrayCompare1)
-			{
-				Collider save = enemyList[0];
-				enemyList[0] = enemyList[1];
-				enemyList[1] = save;
-			}
+			enemyList[i].SendMessage("TargetHit", true);
+			i++;
 		}
 	}
+
 	public Collider[] GetEnemyList()
 	{
 		return enemyList;
@@ -48,5 +40,11 @@ public class TargetList
 		thisTransform = position;
 	}
 
-	
+	void OnDrawGizmosSelected()
+	{
+		// Draw a yellow sphere at the transform's position
+		Gizmos.color = Color.yellow;
+		Gizmos.DrawSphere(thisTransform, sphereRadius);
+	}
 }
+*/
