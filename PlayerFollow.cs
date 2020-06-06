@@ -18,6 +18,7 @@ public class PlayerFollow : MonoBehaviour
     //public GameObject gameObject;
     public GameObject lockTarget;
     public GameObject player;
+
     public Vector3 camForward = Vector3.zero;
     public Vector3 camRight = Vector3.zero;
     public Vector3 playerVector = Vector3.zero;
@@ -77,7 +78,7 @@ public class PlayerFollow : MonoBehaviour
         Debug.DrawRay(transform.position, camForward, Color.blue);
 		targetList.SetPosition(gameObject.transform.position);
 		targetList.Update();
-        targetList.SortEnemy(playerPosition);
+        // targetList.SortEnemy(playerPosition);
 
         enemyList = targetList.GetEnemyList();
         //Debug.Log(enemyList[0].gameObject.name + "  " + (enemyList[0].gameObject.transform.position - playerPosition).magnitude);
@@ -87,7 +88,7 @@ public class PlayerFollow : MonoBehaviour
     void LateUpdate()
     {
 
-        UpdateMouseWheel();
+       
         if (IsRotateActive)
         {
             Cursor.lockState = CursorLockMode.Locked;
@@ -129,7 +130,7 @@ public class PlayerFollow : MonoBehaviour
         }
         if (lockedOn)
         {
-            var targetEnemy = enemyList[currentTarget];
+            UpdateMouseWheel();
             /*
             if (currentTarget >= (enemyList.Length - 1) && mouseWheel > 0) // if 3 = 3 and input > 0, subtract to get 0 (minimum) cycles above the array to get to the bottom
             {
@@ -144,20 +145,12 @@ public class PlayerFollow : MonoBehaviour
                 currentTarget -= 1;
             }
             */
-            if( enemyList.Length > 0)
-            { 
-                currentTarget = currentTarget + mouseWheel;
-            }
-            if (currentTarget > enemyList.Length - 1)
+            if (enemyList.Length != 0)
             {
-                currentTarget = 0;
+                var targetEnemy = enemyList[currentTarget];
+                lockTarget = SetEnemy(mouseWheel);
             }
-            else if (currentTarget < 0)
-            {
-                currentTarget = enemyList.Length - 1;
-            }
-
-            lockTarget = enemyList[currentTarget].gameObject;
+            
             transform.LookAt(lockTarget.transform.position);
             
 
@@ -180,7 +173,26 @@ public class PlayerFollow : MonoBehaviour
         }
 
     }
-    
+    public GameObject SetEnemy(int wheel)
+    {
+        if (mouseWheel != 0 || lockTarget == null)
+        {
+            if ( enemyList.Length > 0)
+            { 
+                currentTarget = currentTarget + mouseWheel;
+            }
+            if (currentTarget > enemyList.Length - 1)
+            {
+                currentTarget = 0;
+            }
+            else if (currentTarget < 0)
+            {
+                currentTarget = enemyList.Length - 1;
+            }
+            return enemyList[currentTarget].gameObject;
+        }
+        else return lockTarget;
+    }
     void UpdateMouseWheel()
     {
         mouseWheelRaw = Input.GetAxis("Mouse ScrollWheel");
@@ -188,6 +200,7 @@ public class PlayerFollow : MonoBehaviour
         if (mouseWheelRaw > 0f)//Scroll up
         {
             mouseWheel = 1;
+
         }
         else if (mouseWheelRaw < 0f)//Scroll Down
         {
@@ -197,5 +210,10 @@ public class PlayerFollow : MonoBehaviour
         {
             mouseWheel = 0;
         }
+        if (enemyList.Length != 0)
+        {
+            SetEnemy(mouseWheel);
+        }
+        
     }
 }
