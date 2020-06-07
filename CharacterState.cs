@@ -55,7 +55,7 @@ public class CharacterState : MonoBehaviour
     void Update()
     {
         SwapCharacter();
-        debugJump.text = "Debug Number = " + Movement.debugValue;
+        debugJump.text = "Gravity = " + Movement.gravity;
     }
     void SwapIllya()
     {
@@ -63,14 +63,14 @@ public class CharacterState : MonoBehaviour
         characterAnimator.SetInteger("Character", 0);
         speedMod = 1;
         Movement.charJumps = 1;
-        Movement.flyStamina = 200;
+        Movement.flyStamina = 2;
         Movement.jumpSpeed = 30;
-        Movement.fallMultiplier = 40;
+        Movement.fallMultiplier = 4;
         Movement.charJumpHeight = 400;
-        characterGravity = 100;
+        characterGravity = 40;
         illyaGlide.SetGrav();
         characterSelect = 0;
-        regenMod = 40;
+        regenMod = 400;
         return;
     }
     void SwapArc()

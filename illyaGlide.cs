@@ -14,6 +14,7 @@ public class illyaGlide : MonoBehaviour
     public float previousFallMult;
     public float previousGravity;
     public bool startGlide;
+    public GameObject movementObject;
     
     // Start is called before the first frame update
     void Start()
@@ -47,19 +48,22 @@ public class illyaGlide : MonoBehaviour
     }
     void Glide()
     {
-        if(canGlide == true && Input.GetButton("Jump"))
+        float prevFall = movement.moveDirection.y;
+        if (canGlide == true && Input.GetButton("Jump"))
         {
             Debug.Log("I am trying to glide!");
             wingParticle.SetActive(true);
-            Movement.fallMultiplier = 0;
-            Movement.gravity = 10;
+            Movement.fallMultiplier = 1;
+            Movement.gravity = 1;
+            movement.moveDirection.y = 0;
         }
         else  
         {
             wingParticle.SetActive(false);
-            Movement.fallMultiplier = 20;
+            Movement.fallMultiplier = 4;
             Movement.fallMultiplier = previousFallMult;
-            Movement.gravity = previousGravity;
+            Movement.gravity = previousGravity; 
+            movement.moveDirection.y = prevFall;
         }
     }
     public void SetGrav()

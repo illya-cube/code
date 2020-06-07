@@ -7,7 +7,7 @@ public class PlayerFollow : MonoBehaviour
     public Transform LookTarget;
     [SerializeField] private Vector3 _cameraOffset;
     [Range(0.01f, 1.0f)]
-    public float SmoothFactor = 0.5f;
+    public float SmoothFactor = .2f;
     public bool LookAtPlayer = false;
     public bool RotateAroundPlayer = true;
     public bool RotateMiddleMouseButton = false;
@@ -18,7 +18,7 @@ public class PlayerFollow : MonoBehaviour
     //public GameObject gameObject;
     public GameObject lockTarget;
     public GameObject player;
-
+    public GameObject crosshair;
     public Vector3 camForward = Vector3.zero;
     public Vector3 camRight = Vector3.zero;
     public Vector3 playerVector = Vector3.zero;
@@ -26,11 +26,13 @@ public class PlayerFollow : MonoBehaviour
     public Vector3 targetPosition;
     public Vector3 camRotOffset;
     public Vector3 camLockResult;
+    public Vector3 trueForward = Vector3.forward;
     public TargetList targetList;
     public int currentTarget = 0;
     private float mouseWheelRaw;
     private int mouseWheel;
     public Collider[] enemyList;
+    public EnemyUIState uiState;
     // Use this for initialization
     void OnAwake()
     {
@@ -46,7 +48,7 @@ public class PlayerFollow : MonoBehaviour
     {
         // Draw a yellow sphere at the transform's position
         Gizmos.color = Color.yellow;
-        Gizmos.DrawSphere(gameObject.transform.position, 50f);
+        //Gizmos.DrawSphere(gameObject.transform.position, 50f);
     }
     private bool IsRotateActive
     {
@@ -63,21 +65,20 @@ public class PlayerFollow : MonoBehaviour
     {
         get
         {
-
         }
     }
     */
     void Update()
     {
-        camForward = gameObject.transform.TransformDirection(Vector3.forward) * 10;
+        camForward = gameObject.transform.TransformDirection(Vector3.forward)  * 10;
         playerPosition = player.transform.position;
         camRight = gameObject.transform.TransformDirection(Vector3.right) * 10;
         playerVector = player.transform.position;
         Debug.DrawRay(gameObject.transform.position, playerVector - gameObject.transform.position, Color.green);
         Debug.DrawRay(transform.position, camRight, Color.red);
         Debug.DrawRay(transform.position, camForward, Color.blue);
-		targetList.SetPosition(gameObject.transform.position);
-		targetList.Update();
+        targetList.SetPosition(gameObject.transform.position);
+        targetList.Update();
         // targetList.SortEnemy(playerPosition);
 
         enemyList = targetList.GetEnemyList();
@@ -87,8 +88,9 @@ public class PlayerFollow : MonoBehaviour
     // LateUpdate is called after Update methods
     void LateUpdate()
     {
+        crosshair.SetActive(lockedOn);
 
-       
+
         if (IsRotateActive)
         {
             Cursor.lockState = CursorLockMode.Locked;
@@ -100,18 +102,39 @@ public class PlayerFollow : MonoBehaviour
             Quaternion camTurnAngleY = Quaternion.AngleAxis(v, transform.right);
 
             Vector3 newCameraOffset = camTurnAngle * camTurnAngleY * _cameraOffset;
-
+            
             // Limit camera pitch
             if (newCameraOffset.y < CameraPitchMin || newCameraOffset.y > CameraPitchMax)
             {
                 newCameraOffset = camTurnAngle * _cameraOffset;
+
+                //inside this if statement, use trueForward to slerp camera offset back to neutral position
             }
+            if (newCameraOffset.y < CameraPitchMin)
+            {
 
+                updateCamera(0);
+            }
+            if (newCameraOffset.y > CameraPitchMax)
+            {
+                updateCamera(1);
+            }
+            
             _cameraOffset = newCameraOffset;
-
+            void updateCamera(int resetValue)
+            {
+                if (resetValue == 0)
+                { 
+                    newCameraOffset.y = CameraPitchMin;
+                }
+                if (resetValue == 1)
+                {
+                    newCameraOffset.y = CameraPitchMax;
+                }
+            }
         }
 
-       
+
         Vector3 newPos = LookTarget.position + _cameraOffset;
 
         transform.position = Vector3.Slerp(transform.position, newPos, SmoothFactor);
@@ -127,6 +150,10 @@ public class PlayerFollow : MonoBehaviour
         {
             RotateAroundPlayer = !RotateAroundPlayer;
             lockedOn = !lockedOn;
+        }
+        if (!lockedOn)
+        {
+           currentTarget = 0;
         }
         if (lockedOn)
         {
@@ -145,18 +172,18 @@ public class PlayerFollow : MonoBehaviour
                 currentTarget -= 1;
             }
             */
-            if (enemyList.Length != 0)
+
+            //var targetEnemy = enemyList[currentTarget];
+            lockTarget = SetEnemy(mouseWheel);
+            
+            if (lockTarget != null)
             {
-                var targetEnemy = enemyList[currentTarget];
-                lockTarget = SetEnemy(mouseWheel);
+                transform.LookAt(lockTarget.transform.position);
             }
-            
-            transform.LookAt(lockTarget.transform.position);
-            
 
 
             //_cameraOffset = newCameraOffset;
-            
+
             targetPosition = lockTarget.transform.position;
 
             camRotOffset = (playerPosition - targetPosition) / (playerPosition - targetPosition).magnitude * 4;
@@ -168,6 +195,7 @@ public class PlayerFollow : MonoBehaviour
             camLockResult = Vector3.Slerp(_cameraOffset, camRotOffset, .1f);
             Debug.DrawRay(transform.position, camLockResult, Color.black);
             _cameraOffset = camLockResult;
+            uiState.UpdateUI(lockTarget.GetComponent<EnemyStats>().myName, lockTarget.GetComponent<EnemyStats>().currentHealth, true, lockTarget.GetComponent<EnemyStats>().maxHealth);
 
 
         }
@@ -175,12 +203,35 @@ public class PlayerFollow : MonoBehaviour
     }
     public GameObject SetEnemy(int wheel)
     {
-        if (mouseWheel != 0 || lockTarget == null)
+
+        if (lockTarget == null)
         {
-            if ( enemyList.Length > 0)
-            { 
-                currentTarget = currentTarget + mouseWheel;
+            currentTarget = 0;
+            if (enemyList.Length > 0)
+            {
+                return enemyList[0].gameObject;
             }
+            else
+            {
+                return null;
+            }
+        }
+        
+        if (Vector3.Distance(lockTarget.transform.position, playerPosition) > 50f)
+        {
+            
+            if (enemyList.Length > 0)
+            {
+                return enemyList[0].gameObject;
+            }
+            else
+            {
+                return null;
+            }
+        }
+        if (wheel != 0)
+        {
+            currentTarget = currentTarget + mouseWheel;
             if (currentTarget > enemyList.Length - 1)
             {
                 currentTarget = 0;
@@ -191,8 +242,12 @@ public class PlayerFollow : MonoBehaviour
             }
             return enemyList[currentTarget].gameObject;
         }
-        else return lockTarget;
+        else
+        {
+            return lockTarget;
+        }
     }
+
     void UpdateMouseWheel()
     {
         mouseWheelRaw = Input.GetAxis("Mouse ScrollWheel");
@@ -210,10 +265,5 @@ public class PlayerFollow : MonoBehaviour
         {
             mouseWheel = 0;
         }
-        if (enemyList.Length != 0)
-        {
-            SetEnemy(mouseWheel);
-        }
-        
     }
 }

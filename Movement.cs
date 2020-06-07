@@ -17,7 +17,7 @@ public class Movement : MonoBehaviour
     public bool inAir = false;
     public float airTime;
     public PlayerFollow cameraControl;
-    private Vector3 moveDirection = Vector3.zero;
+    public Vector3 moveDirection = Vector3.zero;
     private Vector3 verticalResult = Vector3.zero;
     private Vector3 horizontalResult = Vector3.zero;
     private Vector3 jumpVector = Vector3.zero;
@@ -77,7 +77,7 @@ public class Movement : MonoBehaviour
         {
             
             JumpControl();
-            Debug.Log("i'm jumping");
+            //Debug.Log("i'm jumping");
             
         }
         else 
@@ -103,30 +103,41 @@ public class Movement : MonoBehaviour
     }
     void detectGroundFunc()//this is supposed to detect whether the player is on the ground, and set the bool inAir to true, to adjust calculations of air flying/double jumps, etc
     {
+        int floorMask = LayerMask.GetMask("Floor");
+        int slimeMask = LayerMask.GetMask("Slime");
+        int lavaMask = LayerMask.GetMask("Lava");
+        int liquidMask = LayerMask.GetMask("Liquid");
+        int playerMask = LayerMask.GetMask("Player");
+
+        floorMask -= playerMask;
+        slimeMask -= playerMask;
+        lavaMask -= playerMask;
+        liquidMask -= playerMask;
+
         RaycastHit hit;
         // Does the ray intersect any objects excluding the player layer
-        if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.down), out hit, .5f, LayerMask.GetMask("Floor")))
+        if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.down), out hit, .5f, floorMask))
         {
             Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.down) * hit.distance, Color.yellow);
             //Debug.Log("I'm touching Floor");
             inAir = false;
             TouchFloor();
         }
-        else if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.down), out hit, .5f, LayerMask.GetMask("Slime")))
+        else if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.down), out hit, .5f, slimeMask))
         {
             Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.down) * hit.distance, Color.yellow);
             //Debug.Log("I'm touching Slime!");
             inAir = false;
             TouchSlime();
         }
-        else if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.down), out hit, .5f, LayerMask.GetMask("Lava")))
+        else if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.down), out hit, .5f, lavaMask))
         {
             Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.down) * hit.distance, Color.yellow);
             //Debug.Log("AHH I'M ON FIRE!!!");
             inAir = false;
             TouchLava();
         }
-        else if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.down), out hit, .5f, LayerMask.GetMask("Liquid")))
+        else if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.down), out hit, .5f, liquidMask))
         {
             Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.down) * hit.distance, Color.yellow);
             //Debug.Log("I'm touching Liquid!!");
@@ -135,7 +146,7 @@ public class Movement : MonoBehaviour
         }
         else
         {
-            //Debug.Log("I'M FALLING!");
+            Debug.Log("I'M FALLING!");
             inAir = true;
         }
     }
@@ -185,15 +196,15 @@ public class Movement : MonoBehaviour
         if (inAir == true)
         {
             //moveDirection.y -= gravity * (fallMultiplier - 1) * Time.deltaTime;
-            moveDirection.y -= gravity * Time.deltaTime * 10f;
-            Debug.Log("gravity is on!");
-
+            moveDirection.y -= gravity * Time.deltaTime;
+            //Debug.Log("gravity is on!");
+            float prevGrav = gravity;
             if (velocity < -.2 && inAir == true && jumpCount == 0)//this line increases gravity by fall mult over time while the player is falling, capping off at 100
             {
                 gravity += fallMultiplier * Time.deltaTime;
-                if (gravity >= 500)
+                if (gravity >= prevGrav)
                 {
-                    gravity = 500;
+                    gravity = prevGrav;
                 }
             }
             if (Input.GetButton("Crouch")) //this should double gravity while the crouch button is pressed, allowing faster falling if desired
@@ -215,12 +226,17 @@ public class Movement : MonoBehaviour
         horizontalInput = Input.GetAxis("Horizontal"); //take the input of the player, either -1 or 1, and put that into the camera
         verticalInput = Input.GetAxis("Vertical");
 
-        verticalResult = cameraControl.camForward * verticalInput; //we take cam control, which is shooting a vector forward, multiply it by input to get true camera forward
-        horizontalResult = cameraControl.camRight * horizontalInput; //same as above, but with the right vector, and horizontal input
+        
+        verticalResult.x = cameraControl.camForward.x * verticalInput; //we take cam control, which is shooting a vector forward, multiply it by input to get true camera forward
+        verticalResult.z = cameraControl.camForward.z * verticalInput;
+        
+        horizontalResult.x = cameraControl.camRight.x * horizontalInput; //same as above, but with the right vector, and horizontal input
+        horizontalResult.z = cameraControl.camRight.z * horizontalInput;
         /*
          * could have used some lerp or something, but i'm struggling to learn how they actually work, and what i've done seems to work just fine..? maybe..?
         */
-        moveDirection = ((verticalResult + horizontalResult) * speed); //+ (jumpVector);
+        moveDirection.x = ((verticalResult.x + horizontalResult.x) * speed); //+ (jumpVector);
+        moveDirection.z = ((verticalResult.z + horizontalResult.z) * speed);
 
         // Apply gravity. Gravity is multiplied by deltaTime twice (once here, and once below
         // when the moveDirection is multiplied by deltaTime). This is because gravity should be applied
@@ -261,7 +277,7 @@ public class Movement : MonoBehaviour
             if (Input.GetButton("Jump") && flyStamina >= 1 && isJump == false)
             {
                 gravity = 0;
-                moveDirection.y += 10;
+                moveDirection.y = 10;
                 //Debug.Log("i'm flying!");
                 flyStamina--;
                 illyaGlide.startGlide = false;

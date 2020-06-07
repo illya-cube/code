@@ -4,24 +4,34 @@ using UnityEngine;
 
 public class EnemyStats : MonoBehaviour
 {
-    public string enemyName;
-    public int enemyHealth;
+    public string myName;
+    public float maxHealth;
+    public float currentHealth;
+    public int level;
+    //public EnemyZone enemyZone;
+    private GameObject me;
+    public EnemyUIState uiState;
     // Start is called before the first frame update
     void Start()
     {
-        enemyName = gameObject.name;
-    }
 
+    }
+    void Awake()
+    {
+        me = gameObject;
+        myName = gameObject.name;
+    }
     // Update is called once per frame
     void Update()
     {
-        
+
     }
-    public void TargetHit(bool wasHit)
+    void CheckHealth(int damageTaken)
     {
-        if (wasHit)
+        currentHealth -= damageTaken;
+        if (currentHealth <= 0)
         {
-            Debug.Log(enemyName + " is on the target list");
+            Destroy(me);
         }
     }
     public void DamageHit(bool wasHit, int damageValue)
@@ -34,7 +44,20 @@ public class EnemyStats : MonoBehaviour
     }
     public void ReportDamage(int damageValue)
     {
-        Debug.Log(enemyName + "  has been hit!");
-        Debug.Log(enemyName + "hit for " + damageValue);
+        Debug.Log(myName + " has been hit!");
+        Debug.Log(myName + "hit for " + damageValue);
+        Debug.Log("Health Left: " + currentHealth);
+        CheckHealth(damageValue);
+
+    }
+    public void UpdateEnemyStats(float enemyMinLevel, float enemyMaxLevel, int enemyDefence)
+    {
+        //enemyName = gameObject.name;
+        //Mathf.RoundToInt
+        int min = Mathf.RoundToInt(enemyMinLevel);
+        int max = Mathf.RoundToInt(enemyMaxLevel);
+        maxHealth = Random.Range(min, max * enemyDefence);
+        currentHealth = maxHealth;
     }
 }
+
