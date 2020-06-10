@@ -16,7 +16,7 @@ public class Movement : MonoBehaviour
     [SerializeField] public static float gravity;
     public bool inAir = false;
     public float airTime;
-    public PlayerFollow cameraControl;
+    public PlayerCamera cameraControl;
     public Vector3 moveDirection = Vector3.zero;
     private Vector3 verticalResult = Vector3.zero;
     private Vector3 horizontalResult = Vector3.zero;

@@ -61,7 +61,7 @@ public class CharacterState : MonoBehaviour
     {
         iconAnimator.SetInteger("Character", 0);
         characterAnimator.SetInteger("Character", 0);
-        speedMod = 1;
+        speedMod = 2;
         Movement.charJumps = 1;
         Movement.flyStamina = 2;
         Movement.jumpSpeed = 30;
