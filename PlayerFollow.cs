@@ -158,6 +158,7 @@ public class PlayerFollow : MonoBehaviour
         if (lockedOn)
         {
             UpdateMouseWheel();
+            targetList.SortEnemy(playerPosition);
             /*
             if (currentTarget >= (enemyList.Length - 1) && mouseWheel > 0) // if 3 = 3 and input > 0, subtract to get 0 (minimum) cycles above the array to get to the bottom
             {

@@ -248,6 +248,7 @@ public class PlayerCamera : MonoBehaviour
         }
     }
 
+
     void UpdateMouseWheel()
     {
         mouseWheelRaw = Input.GetAxis("Mouse ScrollWheel");

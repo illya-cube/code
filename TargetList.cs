@@ -17,6 +17,7 @@ public class TargetList
 	public void Update()
 	{
 		UpdateEnemyList(thisTransform, sphereRadius);
+		
 	}
 
 	public void UpdateEnemyList(Vector3 center, float radius)
@@ -26,6 +27,20 @@ public class TargetList
 	}
 	public void SortEnemy(Vector3 playerPosition)
 	{
+		int i = 0;
+		foreach (Collider enemy in enemyList)
+		{
+			float arrayCompare0 = (enemyList[i].gameObject.transform.position - playerPosition).magnitude;
+			float arrayCompare1 = (enemyList[i + 1].gameObject.transform.position - playerPosition).magnitude;
+			if (arrayCompare0 > arrayCompare1)
+			{
+				Collider save = enemyList[i];
+				enemyList[i] = enemyList[i + 1];
+				enemyList[i + 1] = save;
+			}
+			i++;
+		}
+		/*
 		if (enemyList.Length > 1)
 		{
 			float arrayCompare0 = (enemyList[0].gameObject.transform.position - playerPosition).magnitude;
@@ -37,6 +52,7 @@ public class TargetList
 				enemyList[1] = save;
 			}
 		}
+		*/
 	}
 	public Collider[] GetEnemyList()
 	{

@@ -72,7 +72,7 @@ public class Movement : MonoBehaviour
        
         CalcMove();
         FlyCheck();
-        Fly();
+        //Fly();
         if (isJump == true)
         {
             
@@ -264,6 +264,7 @@ public class Movement : MonoBehaviour
         if (inAir == true && flyStamina > 0)
         {
             canFly = true;
+            Fly();
         }
         else
         {
